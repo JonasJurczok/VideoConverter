@@ -61,6 +61,15 @@ has to be created so plan your disk space accordingly.
 ####fadeOutDuration
 Same as fadeInDuration but for a fade out at the end of the original video.
 
+####uploadToYT
+Accepted values are true and false. If set to true the output video will be uploaded to YouTube after encoding. This step requires a username and password.
+
+####YTUsername
+See above
+
+####YTPassword
+See above
+
 ##Profiles##
 Every configuration value above can be prefixed with a freely chosen profile name. The only rule is that it must not contain a '.'.
 If you then pass the profile name to the program the values with profile name will override the default values.
