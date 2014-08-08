@@ -1,27 +1,45 @@
 package de.linesofcode.jonas.videoconverter;
 
-import com.sun.corba.se.spi.orbutil.fsm.Input;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
-import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.DELETE_SOURCE_FILE;
 
 public class BooleanAwareProperties extends java.util.Properties {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BooleanAwareProperties.class);
 
+	private String profilePrefix;
+
 	public BooleanAwareProperties() {
+
 	}
 
 	public BooleanAwareProperties(final String fileName) {
-		loadProperties(fileName);
+		this(fileName, null);
+	}
 
+	public BooleanAwareProperties(final String fileName, final String profileName) {
+		loadProperties(fileName);
 		logCurrentConfiguration();
+
+		convertToProfilePrefix(profileName);
+	}
+
+	private void convertToProfilePrefix(String profileName) {
+		if (profileName == null || profileName.isEmpty()) {
+			LOG.info("No profile name given. Using default values only.");
+			profilePrefix = "";
+		} else {
+			LOG.info("Setting active profile to [{}]", profileName);
+			if (profileName.endsWith(".")) {
+				profilePrefix = profileName;
+			} else {
+				profilePrefix = profileName + ".";
+			}
+		}
 	}
 
 	private void logCurrentConfiguration() {
@@ -36,7 +54,7 @@ public class BooleanAwareProperties extends java.util.Properties {
 		LOG.debug("Loading properties from file...");
 
 		try (final InputStream inputStream = new FileInputStream(fileName)) {
-			LOG.info("VideoConverter.properties found. Reading values.");
+			LOG.info("File [{}] found. Reading values.", fileName);
 			load(inputStream);
 		} catch (IOException e) {
 			throw new RuntimeException("Loading the properties failed!", e);
@@ -49,12 +67,18 @@ public class BooleanAwareProperties extends java.util.Properties {
 		final String stored = getProperty(key);
 		final boolean isNull = stored == null;
 		final boolean isEmpty = isNull || stored.isEmpty();
-		final boolean isFalse = "false".equalsIgnoreCase(stored);
-		return !isNull && !isEmpty && !isFalse;
+		final boolean isTrue = "true".equalsIgnoreCase(stored);
+		return !isNull && !isEmpty && isTrue;
 	}
 
 	public String getProperty(Properties key) {
-		final String property = getProperty(key.keyName());
+		LOG.debug("Trying to fetch property for key [{}] with profile [{}]", key.keyName(), profilePrefix);
+		String property = getProperty(profilePrefix + key.keyName());
+
+		if (property == null || property.isEmpty()) {
+			LOG.debug("Fetching with profile failed. Resolving value without profile.");
+			property = getProperty(key.keyName());
+		}
 
 		if (property == null || property.isEmpty()) {
 			throw new NullPointerException("Key [" + key.keyName() + "] is not configured.");
@@ -118,5 +142,12 @@ public class BooleanAwareProperties extends java.util.Properties {
 		abstract public String keyName();
 	}
 
+	public String getProfile() {
+		return profilePrefix.substring(0, profilePrefix.length() - 1);
+	}
+
+	public void setProfile(final String profile) {
+		convertToProfilePrefix(profile);
+	}
 }
 

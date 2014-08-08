@@ -27,13 +27,24 @@ import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Propert
 public final class VideoConverter {
 
 	private static final Logger LOG = LoggerFactory.getLogger(VideoConverter.class);
+	private static final String FILE_NAME = "VideoConverter.properties";
 
 	private final BooleanAwareProperties PROPERTIES;
 
 	public VideoConverter() {
 		LOG.trace("Setting up video converter...");
-		PROPERTIES = new BooleanAwareProperties("VideoConverter.properties");
+		PROPERTIES = new BooleanAwareProperties(FILE_NAME);
 		LOG.trace("Finished.");
+	}
+
+	public VideoConverter(final String profileName) {
+		LOG.trace("Setting up video converter...");
+		PROPERTIES = new BooleanAwareProperties(FILE_NAME, profileName);
+		LOG.trace("Finished.");
+	}
+
+	public VideoConverter(final BooleanAwareProperties properties) {
+		PROPERTIES = properties;
 	}
 
 	public void convert() {
@@ -150,12 +161,18 @@ public final class VideoConverter {
 
 		final StringBuilder builder = new StringBuilder();
 
+		// reencode to x264, merge audio streams, rescale to 1080p, add fade in of 1 second
+		// TODO: Duration has to be known to add a fade out -> grep for duration in ffmpeg output (only workable solution as ffmpeg works in one pass)
+		// TODO: concatenate intro to the beginning. Is this possible in one run? I don't think so...
+		// - Solution: first reencode the video, scale it, add fades. Then in a second step add the intro to the beginning.
+		//ffmpeg -y -i input.avi -map 0:0 -map 0:1 -map 0:2 -c:v libx264 -crf 19 -preset slow -r 30 -vf scale=1920:1080 -vf fade=in:d=1 -c:a aac -strict experimental -b:a 192k -filter_complex "[0:1][0:2]amix" -ac 2 -threads 4 output.mp4
+
 		// ffmpeg -y -i "!FILE!" -c:v libx264 -preset veryslow -map 0:0 -map 0:1 -map 0:2 -c:a aac -strict experimental -b:a 192k -ac 2 -qp 0 -threads 4 "!OUTPUT!"
 		builder.append("\"" + PROPERTIES.getProperty(FFMPEG) + "\"");
 		builder.append(" -y -i ");
 		builder.append("\"" + input.getAbsolutePath() + "\"");   // input file
 		builder.append(" -map 0:0 -map 0:1 -map 0:2"); // mapping
-		builder.append(" -c:v libx264 -preset veryslow -qp 0");       // video encoding
+		builder.append(" -c:v libx264 -crf 19 -preset slow");       // video encoding
 		builder.append(" -c:a aac -strict experimental -b:a 192k -ac 2"); // audio encoding
 		builder.append(" -threads 4"); // optimization
 		builder.append(" ");
