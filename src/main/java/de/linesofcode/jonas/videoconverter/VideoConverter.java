@@ -14,14 +14,15 @@ import java.util.List;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Lists.newArrayList;
+import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.COPY_ONLY;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.DELETE_SOURCE_FILE;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.DRY_RUN;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.FFMPEG;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.FILE_PROJECT_DELIMITER;
-import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.INPUT_PATH;
+import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.INPUT_DIRECTORY;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.ORIGINAL_FILE_SUFFIX;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.OUTPUT_FILE_SUFFIX;
-import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.PROJECT_DIRECTORY;
+import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.OUTPUT_DIRECTORY;
 
 
 public final class VideoConverter {
@@ -48,11 +49,11 @@ public final class VideoConverter {
 	}
 
 	public void convert() {
-		verifySourceDirectoryExistsOrFail();
+		verifyInputDirectoryExistsOrFail();
 
 		LOG.info("Starting conversion process...");
 
-		final String inputPath = PROPERTIES.getProperty(INPUT_PATH);
+		final String inputPath = PROPERTIES.getProperty(INPUT_DIRECTORY);
 		final File inputDirectory = new File(inputPath);
 
 		final PatternFilenameFilter filter = new PatternFilenameFilter(".*\\.avi");
@@ -81,23 +82,34 @@ public final class VideoConverter {
 			final File outputFile = generateOutputFile(file, projectDirectory);
 			LOG.info("Output file will be [{}]", outputFile.getAbsolutePath());
 
-			final String command = generateFFMPEGCommand(file, outputFile);
-			try {
-				runFFMPEG(command);
-			} catch (IOException | InterruptedException e) {
-				LOG.warn("FFMPEG failed with error [{}]. The current file will be ignored.", e.getMessage(), e);
-				continue;
+			final boolean onlyCopy = PROPERTIES.getBooleanProperty(COPY_ONLY);
+
+			if (!onlyCopy) {
+				final String command = generateFFMPEGCommand(file, outputFile);
+				try {
+					runFFMPEG(command);
+				} catch (IOException | InterruptedException e) {
+					LOG.warn("FFMPEG failed with error [{}]. The current file will be ignored.", e.getMessage(), e);
+					continue;
+				}
 			}
 
-			final boolean shouldDeleteSourceFile = PROPERTIES.getBooleanProperty(DELETE_SOURCE_FILE);
-			if (shouldDeleteSourceFile) {
-				LOG.info("Deleting source file [{}].", file.getAbsolutePath());
-				file.delete();
-			} else {
+			if (onlyCopy) {
 				final String destinationName = generateDestinationFileName(file);
 				final File destination = new File(projectDirectory.get(), destinationName);
 				LOG.info("Moving original file [{}] to project directory [{}].", file.getAbsolutePath(), destination.getAbsolutePath());
 				file.renameTo(destination);
+			} else {
+				final boolean shouldDeleteSourceFile = PROPERTIES.getBooleanProperty(DELETE_SOURCE_FILE);
+				if (shouldDeleteSourceFile) {
+					LOG.info("Deleting source file [{}].", file.getAbsolutePath());
+					file.delete();
+				} else {
+					final String destinationName = generateDestinationFileName(file);
+					final File destination = new File(projectDirectory.get(), destinationName);
+					LOG.info("Moving original file [{}] to project directory [{}].", file.getAbsolutePath(), destination.getAbsolutePath());
+					file.renameTo(destination);
+				}
 			}
 		}
 	}
@@ -109,10 +121,18 @@ public final class VideoConverter {
 
 		LOG.debug("Raw filename is [{}].", rawName);
 
-		final String suffix = PROPERTIES.getProperty(ORIGINAL_FILE_SUFFIX);
-		LOG.debug("Original file suffix is [{}].", suffix);
+		final String fileName;
+		final boolean copyOnly = PROPERTIES.getBooleanProperty(COPY_ONLY);
+		if (copyOnly) {
+			fileName = rawName + ".avi";
 
-		final String fileName = rawName + " " + suffix + ".avi";
+		} else {
+			final String suffix = PROPERTIES.getProperty(ORIGINAL_FILE_SUFFIX);
+			LOG.debug("Original file suffix is [{}].", suffix);
+
+			fileName = rawName + " " + suffix + ".avi";
+
+		}
 		LOG.debug("Generated filename is [{}]", fileName);
 
 		return fileName;
@@ -192,10 +212,17 @@ public final class VideoConverter {
 
 		LOG.debug("Raw filename is [{}].", rawName);
 
-		final String suffix = PROPERTIES.getProperty(OUTPUT_FILE_SUFFIX);
-                LOG.debug("Output file suffix is [{}].", suffix);
+		final boolean onlyCopy = PROPERTIES.getBooleanProperty(COPY_ONLY);
 
-		final String fileName = rawName + suffix + ".mp4";
+		final String fileName;
+		if (!onlyCopy) {
+			final String suffix = PROPERTIES.getProperty(OUTPUT_FILE_SUFFIX);
+			LOG.debug("Output file suffix is [{}].", suffix);
+			fileName = rawName + suffix + ".mp4";
+		} else {
+			fileName = rawName + ".mp4";
+		}
+
 		LOG.debug("Generated filename is [{}]", fileName);
 
 		LOG.trace("Finished.");
@@ -205,7 +232,7 @@ public final class VideoConverter {
 	private Optional<File> createProjectDirectoryOrFail(final String projectName){
 		LOG.trace("Creating project directory...");
 
-		final String path = PROPERTIES.getProperty(PROJECT_DIRECTORY);
+		final String path = PROPERTIES.getProperty(OUTPUT_DIRECTORY);
 		final File directory = new File(path, projectName);
 
 		if (directory.exists()) {
@@ -238,9 +265,9 @@ public final class VideoConverter {
 		return of(parts[0].trim());
 	}
 
-	private void verifySourceDirectoryExistsOrFail() {
+	private void verifyInputDirectoryExistsOrFail() {
 		LOG.debug("Verifying source directory...");
-		final String path = PROPERTIES.getProperty(INPUT_PATH);
+		final String path = PROPERTIES.getProperty(INPUT_DIRECTORY);
 		final File directory = new File(path);
 
 		if (!directory.exists()) {

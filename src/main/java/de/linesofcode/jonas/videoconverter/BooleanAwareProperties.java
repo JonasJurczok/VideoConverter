@@ -72,6 +72,7 @@ public class BooleanAwareProperties extends java.util.Properties {
 	}
 
 	public String getProperty(Properties key) {
+		//TODO: only fetch with profile if there actually is a profile configured.
 		LOG.debug("Trying to fetch property for key [{}] with profile [{}]", key.keyName(), profilePrefix);
 		String property = getProperty(profilePrefix + key.keyName());
 
@@ -96,10 +97,10 @@ public class BooleanAwareProperties extends java.util.Properties {
 				return "deleteSourceFile";
 			}
 		},
-		INPUT_PATH {
+		INPUT_DIRECTORY {
 			@Override
 			public String keyName() {
-				return "inputPath";
+				return "inputDir";
 			}
 		},
 		FILE_PROJECT_DELIMITER {
@@ -108,10 +109,10 @@ public class BooleanAwareProperties extends java.util.Properties {
 				return "projectDelimiter";
 			}
 		},
-		PROJECT_DIRECTORY {
+		OUTPUT_DIRECTORY {
 			@Override
 			public String keyName() {
-				return "projectDirectory";
+				return "outputDir";
 			}
 		},
 		OUTPUT_FILE_SUFFIX {
@@ -136,6 +137,12 @@ public class BooleanAwareProperties extends java.util.Properties {
 			@Override
 			public String keyName() {
 				return "ffmpeg";
+			}
+		},
+		COPY_ONLY {
+			@Override
+			public String keyName() {
+				return "copyOnly";
 			}
 		};
 

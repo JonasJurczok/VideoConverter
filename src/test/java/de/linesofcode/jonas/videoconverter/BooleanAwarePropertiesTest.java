@@ -1,13 +1,13 @@
 package de.linesofcode.jonas.videoconverter;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.DELETE_SOURCE_FILE;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.DRY_RUN;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.FFMPEG;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.FILE_PROJECT_DELIMITER;
-import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.PROJECT_DIRECTORY;
+import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.OUTPUT_DIRECTORY;
+import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.OUTPUT_FILE_SUFFIX;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.core.Is.is;
@@ -66,7 +66,7 @@ public class BooleanAwarePropertiesTest {
 	public void getPropertyFromDefaultValue() {
 		final BooleanAwareProperties properties = createProperties("test");
 
-		final String projectDelimiter = properties.getProperty(PROJECT_DIRECTORY);
+		final String projectDelimiter = properties.getProperty(OUTPUT_DIRECTORY);
 
 		assertThat(projectDelimiter, is("testdirectory"));
 	}
