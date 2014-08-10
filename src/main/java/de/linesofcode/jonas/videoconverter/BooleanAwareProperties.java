@@ -64,11 +64,16 @@ public class BooleanAwareProperties extends java.util.Properties {
 	}
 
 	public boolean getBooleanProperty(final Properties key) {
-		final String stored = getProperty(key);
-		final boolean isNull = stored == null;
-		final boolean isEmpty = isNull || stored.isEmpty();
-		final boolean isTrue = "true".equalsIgnoreCase(stored);
-		return !isNull && !isEmpty && isTrue;
+		try {
+			final String stored = getProperty(key);
+			final boolean isNull = stored == null;
+			final boolean isEmpty = isNull || stored.isEmpty();
+			final boolean isTrue = "true".equalsIgnoreCase(stored);
+			return !isNull && !isEmpty && isTrue;
+		} catch (NullPointerException e) {
+			LOG.info("Key [{}] not configured. Defaulting to [{}].", key.keyName(), false);
+			return false;
+		}
 	}
 
 	public String getProperty(Properties key) {

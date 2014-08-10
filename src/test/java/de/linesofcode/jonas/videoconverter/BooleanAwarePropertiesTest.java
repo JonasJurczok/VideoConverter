@@ -32,7 +32,7 @@ public class BooleanAwarePropertiesTest {
 		assertThat(deleteSource, is(true));
 	}
 
-	@Test(expected = NullPointerException.class)
+	@Test
 	public void getBooleanNonExistentResolvesToFalse() {
 		final BooleanAwareProperties properties = createProperties();
 		properties.getBooleanProperty(DRY_RUN);
