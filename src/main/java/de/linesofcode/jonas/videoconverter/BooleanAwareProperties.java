@@ -96,16 +96,16 @@ public class BooleanAwareProperties extends java.util.Properties {
 
 	public enum Properties {
 
-		DELETE_SOURCE_FILE {
+		DELETE_INPUT_FILE {
 			@Override
 			public String keyName() {
-				return "deleteSourceFile";
+				return "input.delete";
 			}
 		},
 		INPUT_DIRECTORY {
 			@Override
 			public String keyName() {
-				return "inputDir";
+				return "input.directory";
 			}
 		},
 		FILE_PROJECT_DELIMITER {
@@ -117,7 +117,7 @@ public class BooleanAwareProperties extends java.util.Properties {
 		OUTPUT_DIRECTORY {
 			@Override
 			public String keyName() {
-				return "outputDir";
+				return "output.directory";
 			}
 		},
 		OUTPUT_FILE_SUFFIX {
@@ -148,6 +148,36 @@ public class BooleanAwareProperties extends java.util.Properties {
 			@Override
 			public String keyName() {
 				return "copyOnly";
+			}
+		},
+		USE_FADING {
+			@Override
+			public String keyName() {
+				return "fading.attach";
+			}
+		},
+		FADING_DURATION {
+			@Override
+			public String keyName() {
+				return "fading.duration";
+			}
+		},
+		INTRO_PATH {
+			@Override
+			public String keyName() {
+				return "intro.path";
+			}
+		},
+		USE_INTRO {
+			@Override
+			public String keyName() {
+				return "intro.attach";
+			}
+		},
+		UPLOAD_TO_YOUTUBE {
+			@Override
+			public String keyName() {
+				return "yt.upload";
 			}
 		};
 

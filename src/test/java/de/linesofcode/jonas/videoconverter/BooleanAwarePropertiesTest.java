@@ -2,12 +2,11 @@ package de.linesofcode.jonas.videoconverter;
 
 import org.junit.Test;
 
-import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.DELETE_SOURCE_FILE;
+import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.DELETE_INPUT_FILE;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.DRY_RUN;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.FFMPEG;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.FILE_PROJECT_DELIMITER;
 import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.OUTPUT_DIRECTORY;
-import static de.linesofcode.jonas.videoconverter.BooleanAwareProperties.Properties.OUTPUT_FILE_SUFFIX;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.core.Is.is;
@@ -27,7 +26,7 @@ public class BooleanAwarePropertiesTest {
 	@Test
 	public void getBooleanHappyCase() {
 		final BooleanAwareProperties properties = createProperties();
-		final boolean deleteSource = properties.getBooleanProperty(DELETE_SOURCE_FILE);
+		final boolean deleteSource = properties.getBooleanProperty(DELETE_INPUT_FILE);
 
 		assertThat(deleteSource, is(true));
 	}
